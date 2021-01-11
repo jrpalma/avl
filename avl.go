@@ -13,19 +13,23 @@ func NewTree() *Tree {
 
 type Tree struct {
 	root *node
+	size int
 }
 
 func (t *Tree) Clear() {
 	t.root = nil
 }
+func (t *Tree) Size() int {
+	return t.size
+}
 func (t *Tree) Has(k Key) bool {
 	return lookup(t.root, k) != nil
 }
 func (t *Tree) Put(k Key, v interface{}) {
-	t.root = insert(t.root, k, v)
+	t.root = t.insert(t.root, k, v)
 }
-func (t *Tree) Traverse(v Visit) {
-	traverse(t.root, v)
+func (t *Tree) Del(k Key) {
+	t.root = t.remove(t.root, k)
 }
 func (t *Tree) Get(k Key) interface{} {
 	n := lookup(t.root, k)
@@ -33,6 +37,12 @@ func (t *Tree) Get(k Key) interface{} {
 		return nil
 	}
 	return n.data
+}
+func (t *Tree) VisitAscending(v Visit) {
+	visitAscending(t.root, v)
+}
+func (t *Tree) VisitDescending(v Visit) {
+	visitDescending(t.root, v)
 }
 
 func leftHeavy(bf int16) bool {
@@ -69,15 +79,53 @@ func balanceFactor(n *node) int16 {
 	return height(n.left) - height(n.right)
 }
 
-func insert(n *node, k Key, d interface{}) *node {
+func smallest(n *node) *node {
+	small := n
+	for small.left != nil {
+		small = small.left
+	}
+	return small
+}
+
+func (t *Tree) insert(n *node, k Key, d interface{}) *node {
 	if n == nil {
 		n = &node{key: k, data: d, height: 0}
+		t.size++
 		return n
 	}
 	if k.Less(n.key) {
-		n.left = insert(n.left, k, d)
+		n.left = t.insert(n.left, k, d)
 	} else {
-		n.right = insert(n.right, k, d)
+		n.right = t.insert(n.right, k, d)
+	}
+
+	return rebalance(n)
+}
+
+func (t *Tree) remove(n *node, k Key) *node {
+	if n == nil {
+		return n
+	} else if k.Less(n.key) {
+		n.left = t.remove(n.left, k)
+	} else if !k.Equals(n.key) {
+		n.right = t.remove(n.right, k)
+	} else {
+		t.size--
+		if n.left == nil && n.right == nil {
+			return nil
+		}
+		if n.left == nil && n.right != nil {
+			n = n.right
+		}
+		if n.left != nil && n.right == nil {
+			n = n.left
+		}
+		if n.left != nil && n.right != nil {
+			smallestRight := smallest(n.right)
+			n.key = smallestRight.key
+			n.data = smallestRight.data
+			n.right = t.remove(n.right, n.key)
+		}
 	}
 
 	return rebalance(n)
@@ -94,49 +142,23 @@ func lookup(n *node, k Key) *node {
 	}
 	return lookup(n.right, k)
 }
-func traverse(n *node, visit Visit) {
+
+func visitAscending(n *node, visit Visit) {
 	if n == nil {
 		return
 	}
-	traverse(n.left, visit)
+	visitAscending(n.left, visit)
 	visit(n.data)
-	traverse(n.right, visit)
+	visitAscending(n.right, visit)
 }
 
-func remove(n *node, k Key) *node {
+func visitDescending(n *node, visit Visit) {
 	if n == nil {
-		return n
-	} else if k.Less(n.key) {
-		n.left = remove(n.left, k)
-	} else if !k.Equals(n.key) {
-		n.right = remove(n.right, k)
-	} else {
-		if n.left == nil && n.right == nil {
-			return nil
-		}
-		if n.left == nil && n.right != nil {
-			n = n.right
-		}
-		if n.left != nil && n.right == nil {
-			n = n.left
-		}
-		if n.left != nil && n.right != nil {
-			smallestRight := smallest(n.right)
-			n.key = smallestRight.key
-			n.data = smallestRight.data
-			n.right = remove(n.right, n.key)
-		}
+		return
 	}
-
-	return rebalance(n)
-}
-
-func smallest(n *node) *node {
-	small := n
-	for small.left != nil {
-		small = small.left
-	}
-	return small
+	visitDescending(n.right, visit)
+	visit(n.data)
+	visitDescending(n.left, visit)
 }
 
 func rebalance(n *node) *node {

@@ -19,20 +19,6 @@ func TestTreeGet(t *testing.T) {
 		t.Errorf("Get should return 4, not %v", i)
 	}
 }
-func TestTreeTraverse(t *testing.T) {
-	nt := NewTree()
-	nt.root = buildTree(7)
-	ints := make([]int, 0)
-	nodes := []int{1, 2, 3, 4, 5, 6, 7}
-
-	nt.Traverse(func(d interface{}) {
-		ints = append(ints, d.(int))
-	})
-
-	for _, err := range verifyTree(nt.root, nodes) {
-		t.Error(err.Error())
-	}
-}
 
 func TestTreeClear(t *testing.T) {
 	nt := NewTree()
@@ -60,6 +46,77 @@ func TestTreePut(t *testing.T) {
 	nt.Put(testKey(4), 4)
 	if !nt.Has(testKey(4)) {
 		t.Error("Key 4 should exist")
+	}
+}
+
+func TestTreeDel(t *testing.T) {
+	nt := NewTree()
+	nt.Put(testKey(4), 4)
+
+	nt.Del(testKey(4))
+	if nt.Has(testKey(4)) {
+		t.Error("Key 4 should not exist")
+	}
+}
+func TestTreeSize(t *testing.T) {
+	nt := NewTree()
+
+	if nt.Size() != 0 {
+		t.Errorf("Empty tree should have 0 size, not %v", nt.Size())
+	}
+
+	nt.Put(testKey(4), 4)
+	if nt.Size() != 1 {
+		t.Errorf("Expected tree size 1, not %v", nt.Size())
+	}
+
+	nt.Del(testKey(4))
+	if nt.Size() != 0 {
+		t.Errorf("Empty tree should have 0 size, not %v", nt.Size())
+	}
+}
+
+func TestTreeVisitAscending(t *testing.T) {
+	nt := NewTree()
+	nt.root = buildTree(7)
+	ints := make([]int, 0)
+
+	nt.VisitAscending(func(d interface{}) {
+		ints = append(ints, d.(int))
+	})
+
+	expected := []int{1, 2, 3, 4, 5, 6, 7}
+
+	if len(expected) != len(ints) {
+		t.Errorf("Expected nodes %#v, not %#v", expected, ints)
+		return
+	}
+	for i, v := range ints {
+		if expected[i] != v {
+			t.Errorf("Expected %v, not %v", expected[i], v)
+		}
+	}
+}
+
+func TestTreeVisitDescending(t *testing.T) {
+	nt := NewTree()
+	nt.root = buildTree(7)
+	ints := make([]int, 0)
+
+	nt.VisitDescending(func(d interface{}) {
+		ints = append(ints, d.(int))
+	})
+
+	expected := []int{7, 6, 5, 4, 3, 2, 1}
+
+	if len(expected) != len(ints) {
+		t.Errorf("Expected nodes %#v, not %#v", expected, ints)
+		return
+	}
+	for i, v := range ints {
+		if expected[i] != v {
+			t.Errorf("Expected %v, not %v", expected[i], v)
+		}
 	}
 }
 
@@ -123,12 +180,13 @@ func TestBalanceFactor(t *testing.T) {
 }
 
 func TestInsertRR(t *testing.T) {
-	n := insert(nil, testKey(10), 10)
+	nt := &Tree{}
+	n := nt.insert(nil, testKey(10), 10)
 	if n.data.(int) != 10 {
 		t.Errorf("Insert should have inserted 10")
 	}
-	n = insert(n, testKey(15), 15)
-	n = insert(n, testKey(20), 20)
+	n = nt.insert(n, testKey(15), 15)
+	n = nt.insert(n, testKey(20), 20)
 	if n.data.(int) != 15 {
 		t.Errorf("Expected 5, not %v", n.data.(int))
 	}
@@ -141,12 +199,13 @@ func TestInsertRR(t *testing.T) {
 }
 
 func TestInsertLL(t *testing.T) {
-	n := insert(nil, testKey(20), 20)
+	nt := &Tree{}
+	n := nt.insert(nil, testKey(20), 20)
 	if n.data.(int) != 20 {
 		t.Errorf("Insert should have inserted 20")
 	}
-	n = insert(n, testKey(15), 15)
-	n = insert(n, testKey(10), 10)
+	n = nt.insert(n, testKey(15), 15)
+	n = nt.insert(n, testKey(10), 10)
 	if n.data.(int) != 15 {
 		t.Errorf("Expected 15, not %v", n.data.(int))
 	}
@@ -159,12 +218,13 @@ func TestInsertLL(t *testing.T) {
 }
 
 func TestInsertRL(t *testing.T) {
-	n := insert(nil, testKey(10), 10)
+	nt := &Tree{}
+	n := nt.insert(nil, testKey(10), 10)
 	if n.data.(int) != 10 {
 		t.Errorf("Insert should have inserted 10")
 	}
-	n = insert(n, testKey(20), 20)
-	n = insert(n, testKey(15), 15)
+	n = nt.insert(n, testKey(20), 20)
+	n = nt.insert(n, testKey(15), 15)
 	if n.data.(int) != 15 {
 		t.Errorf("Expected 15, not %v", n.data.(int))
 	}
@@ -177,12 +237,13 @@ func TestInsertRL(t *testing.T) {
 }
 
 func TestInsertLR(t *testing.T) {
-	n := insert(nil, testKey(20), 20)
+	nt := &Tree{}
+	n := nt.insert(nil, testKey(20), 20)
 	if n.data.(int) != 20 {
 		t.Errorf("Insert should have inserted 20")
 	}
-	n = insert(n, testKey(10), 10)
-	n = insert(n, testKey(15), 15)
+	n = nt.insert(n, testKey(10), 10)
+	n = nt.insert(n, testKey(15), 15)
 	if n.data.(int) != 15 {
 		t.Errorf("Expected 15, not %v", n.data.(int))
 	}
@@ -195,11 +256,12 @@ func TestInsertLR(t *testing.T) {
 }
 
 func TestLookup(t *testing.T) {
-	n := insert(nil, testKey(20), 20)
-	n = insert(n, testKey(30), 30)
-	n = insert(n, testKey(40), 40)
-	n = insert(n, testKey(50), 50)
-	n = insert(n, testKey(60), 60)
+	nt := &Tree{}
+	n := nt.insert(nil, testKey(20), 20)
+	n = nt.insert(n, testKey(30), 30)
+	n = nt.insert(n, testKey(40), 40)
+	n = nt.insert(n, testKey(50), 50)
+	n = nt.insert(n, testKey(60), 60)
 
 	v := lookup(n, testKey(70))
 	if v != nil {
@@ -224,47 +286,52 @@ func TestLookup(t *testing.T) {
 
 }
 func TestRemoveNonExisting(t *testing.T) {
-	n := buildTree(7)
+	nt := &Tree{}
+	nt.root = buildTree(7)
 
-	n = remove(n, testKey(20))
+	nt.root = nt.remove(nt.root, testKey(20))
 	nodes := []int{1, 2, 3, 4, 5, 6, 7}
-	for _, err := range verifyTree(n, nodes) {
+	for _, err := range verifyTree(nt.root, nodes) {
 		t.Error(err.Error())
 	}
 }
 func TestRemoveLeaf(t *testing.T) {
-	n := buildTree(7)
+	nt := &Tree{}
+	nt.root = buildTree(7)
 
-	n = remove(n, testKey(7))
+	nt.root = nt.remove(nt.root, testKey(7))
 	nodes := []int{1, 2, 3, 4, 5, 6}
-	for _, err := range verifyTree(n, nodes) {
+	for _, err := range verifyTree(nt.root, nodes) {
 		t.Error(err.Error())
 	}
 }
 func TestRemoveLeftChild(t *testing.T) {
-	n := buildTree(7)
-	n = remove(n, testKey(7))
-	n = remove(n, testKey(6))
+	nt := &Tree{}
+	nt.root = buildTree(7)
+	nt.root = nt.remove(nt.root, testKey(7))
+	nt.root = nt.remove(nt.root, testKey(6))
 	nodes := []int{1, 2, 3, 4, 5}
-	for _, err := range verifyTree(n, nodes) {
+	for _, err := range verifyTree(nt.root, nodes) {
 		t.Error(err.Error())
 	}
 }
 
 func TestRemoveRightChild(t *testing.T) {
-	n := buildTree(7)
-	n = remove(n, testKey(5))
-	n = remove(n, testKey(6))
+	nt := &Tree{}
+	nt.root = buildTree(7)
+	nt.root = nt.remove(nt.root, testKey(5))
+	nt.root = nt.remove(nt.root, testKey(6))
 	nodes := []int{1, 2, 3, 4, 7}
-	for _, err := range verifyTree(n, nodes) {
+	for _, err := range verifyTree(nt.root, nodes) {
 		t.Error(err.Error())
 	}
 }
 func TestRemoveRoot(t *testing.T) {
-	n := buildTree(7)
-	n = remove(n, testKey(4))
+	nt := &Tree{}
+	nt.root = buildTree(7)
+	nt.root = nt.remove(nt.root, testKey(4))
 	nodes := []int{1, 2, 3, 5, 6, 7}
-	for _, err := range verifyTree(n, nodes) {
+	for _, err := range verifyTree(nt.root, nodes) {
 		t.Error(err.Error())
 	}
 }
@@ -276,30 +343,60 @@ func TestRebalance(t *testing.T) {
 	}
 }
 
-func TestTraverse(t *testing.T) {
+func TestVisitAscending(t *testing.T) {
 	n := buildTree(7)
-	nodes := []int{1, 2, 3, 4, 5, 6, 7}
-	for _, err := range verifyTree(n, nodes) {
-		t.Error(err.Error())
+	ints := make([]int, 0)
+	expected := []int{1, 2, 3, 4, 5, 6, 7}
+	visitAscending(n, func(d interface{}) {
+		ints = append(ints, d.(int))
+	})
+
+	if len(expected) != len(ints) {
+		t.Errorf("Expected nodes %#v, not %#v", expected, ints)
+		return
+	}
+	for i, v := range ints {
+		if expected[i] != v {
+			t.Errorf("Expected %v, not %v", expected[i], v)
+		}
+	}
+}
+
+func TestVisitDescending(t *testing.T) {
+	n := buildTree(7)
+	ints := make([]int, 0)
+	expected := []int{7, 6, 5, 4, 3, 2, 1}
+	visitDescending(n, func(d interface{}) {
+		ints = append(ints, d.(int))
+	})
+
+	if len(expected) != len(ints) {
+		t.Errorf("Expected nodes %#v, not %#v", expected, ints)
+		return
+	}
+	for i, v := range ints {
+		if expected[i] != v {
+			t.Errorf("Expected %v, not %v", expected[i], v)
+		}
 	}
 }
 
 func buildTree(max int) *node {
-	var n *node
+	nt := &Tree{}
 	if max < 1 {
 		return nil
 	}
 	for i := 1; i <= max; i++ {
-		n = insert(n, testKey(i), i)
+		nt.root = nt.insert(nt.root, testKey(i), i)
 	}
-	return n
+	return nt.root
 }
 
 func verifyTree(n *node, vals []int) []error {
 	var errors []error
 	ints := make([]int, 0)
 
-	traverse(n, func(d interface{}) {
+	visitAscending(n, func(d interface{}) {
 		ints = append(ints, d.(int))
 	})
 
