@@ -1,46 +1,69 @@
 package avl
 
-type Visit func(interface{})
-
+//Key Interface used to keep a balanced AVL tree.
 type Key interface {
 	Less(Key) bool
 	Equals(Key) bool
 }
 
+//Visit Function type used to visit all the nodes in a tree
+type Visit func(Key)
+
+//NewTree Creates and returns a new AVL tree
 func NewTree() *Tree {
 	return &Tree{}
 }
 
+//Tree An AVL tree to insert, search, and delete in O(log n)
 type Tree struct {
 	root *node
 	size int
 }
 
+//Clear Clears all the nodes in the AVL tree
 func (t *Tree) Clear() {
 	t.root = nil
 }
+
+//Size Returns the number of nodes in the AVL tree
 func (t *Tree) Size() int {
 	return t.size
 }
+
+//Has Returns true if the tree contains the Key k
 func (t *Tree) Has(k Key) bool {
 	return lookup(t.root, k) != nil
 }
-func (t *Tree) Put(k Key, v interface{}) {
-	t.root = t.insert(t.root, k, v)
+
+//Put Inserts a node with Key k into the tree. The node is not inserted
+//if a node with the Key k alredy exist.
+func (t *Tree) Put(k Key) {
+	t.root = t.insert(t.root, k)
 }
+
+//Del Deletes the node with the Key k.
 func (t *Tree) Del(k Key) {
 	t.root = t.remove(t.root, k)
 }
-func (t *Tree) Get(k Key) interface{} {
+
+//Get Searches for node with the Key k and returns the key.
+//It returns nil if the Key cannot be found in the tree.
+func (t *Tree) Get(k Key) Key {
 	n := lookup(t.root, k)
 	if n == nil {
 		return nil
 	}
-	return n.data
+	return n.key
 }
+
+//VisitAscending Traverse the tree from the smallest to the largest Key by
+//calling the Visit function v.
 func (t *Tree) VisitAscending(v Visit) {
 	visitAscending(t.root, v)
 }
+
+//VisitDescending Traverse the tree from the largest to the smalles Key by
+//calling the Visit function v.
 func (t *Tree) VisitDescending(v Visit) {
 	visitDescending(t.root, v)
 }
@@ -87,16 +110,16 @@ func smallest(n *node) *node {
 	return small
 }
 
-func (t *Tree) insert(n *node, k Key, d interface{}) *node {
+func (t *Tree) insert(n *node, k Key) *node {
 	if n == nil {
-		n = &node{key: k, data: d, height: 0}
+		n = &node{key: k, height: 0}
 		t.size++
 		return n
 	}
 	if k.Less(n.key) {
-		n.left = t.insert(n.left, k, d)
+		n.left = t.insert(n.left, k)
 	} else {
-		n.right = t.insert(n.right, k, d)
+		n.right = t.insert(n.right, k)
 	}
 
 	return rebalance(n)
@@ -123,7 +146,6 @@ func (t *Tree) remove(n *node, k Key) *node {
 		if n.left != nil && n.right != nil {
 			smallestRight := smallest(n.right)
 			n.key = smallestRight.key
-			n.data = smallestRight.data
 			n.right = t.remove(n.right, n.key)
 		}
 	}
@@ -148,7 +170,7 @@ func visitAscending(n *node, visit Visit) {
 		return
 	}
 	visitAscending(n.left, visit)
-	visit(n.data)
+	visit(n.key)
 	visitAscending(n.right, visit)
 }
 
@@ -157,7 +179,7 @@ func visitDescending(n *node, visit Visit) {
 		return
 	}
 	visitDescending(n.right, visit)
-	visit(n.data)
+	visit(n.key)
 	visitDescending(n.left, visit)
 }
 

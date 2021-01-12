@@ -5,6 +5,58 @@ import (
 	"testing"
 )
 
+type Record struct {
+	Key  int
+	Data int
+}
+
+func (r *Record) Less(k Key) bool {
+	return r.Key < k.(*Record).Key
+}
+func (r *Record) Equals(k Key) bool {
+	return r.Key == k.(*Record).Key
+}
+
+type RecordTree struct {
+	Tree
+}
+
+func (rt *RecordTree) Get(key Key) *Record {
+	v := rt.Tree.Get(key)
+	if v == nil {
+		return nil
+	}
+	return v.(*Record)
+}
+
+func TestRecord(t *testing.T) {
+	nt := &Tree{}
+	key := 10
+	nt.Put(&Record{Key: key, Data: 10})
+	v := nt.Get(&Record{Key: key})
+	if v == nil {
+		t.Errorf("Failed to get %v", key)
+	}
+	r := v.(*Record)
+	if r.Data != 10 {
+		t.Errorf("Data should be 10, not %v", r.Data)
+	}
+
+}
+
+func TestRecordTree(t *testing.T) {
+	nt := &RecordTree{}
+	key := 10
+	nt.Put(&Record{Key: key, Data: 20})
+	v := nt.Get(&Record{Key: key})
+	if v == nil {
+		t.Errorf("Failed to get %v", key)
+	}
+	if v.Data != 20 {
+		t.Errorf("Data should be 10, not %v", v.Data)
+	}
+}
+
 func TestTreeGet(t *testing.T) {
 	nt := NewTree()
 	nt.root = buildTree(7)
@@ -14,7 +66,7 @@ func TestTreeGet(t *testing.T) {
 	}
 
 	n = nt.Get(testKey(4))
-	i, ok := n.(int)
+	i, ok := n.(testKey)
 	if !ok || i != 4 {
 		t.Errorf("Get should return 4, not %v", i)
 	}
@@ -43,7 +95,7 @@ func TestTreeHas(t *testing.T) {
 
 func TestTreePut(t *testing.T) {
 	nt := NewTree()
-	nt.Put(testKey(4), 4)
+	nt.Put(testKey(4))
 	if !nt.Has(testKey(4)) {
 		t.Error("Key 4 should exist")
 	}
@@ -51,7 +103,7 @@ func TestTreePut(t *testing.T) {
 
 func TestTreeDel(t *testing.T) {
 	nt := NewTree()
-	nt.Put(testKey(4), 4)
+	nt.Put(testKey(4))
 
 	nt.Del(testKey(4))
 	if nt.Has(testKey(4)) {
@@ -65,7 +117,7 @@ func TestTreeSize(t *testing.T) {
 		t.Errorf("Empty tree should have 0 size, not %v", nt.Size())
 	}
 
-	nt.Put(testKey(4), 4)
+	nt.Put(testKey(4))
 	if nt.Size() != 1 {
 		t.Errorf("Expected tree size 1, not %v", nt.Size())
 	}
@@ -81,8 +133,8 @@ func TestTreeVisitAscending(t *testing.T) {
 	nt.root = buildTree(7)
 	ints := make([]int, 0)
 
-	nt.VisitAscending(func(d interface{}) {
-		ints = append(ints, d.(int))
+	nt.VisitAscending(func(d Key) {
+		ints = append(ints, int(d.(testKey)))
 	})
 
 	expected := []int{1, 2, 3, 4, 5, 6, 7}
@@ -103,8 +155,8 @@ func TestTreeVisitDescending(t *testing.T) {
 	nt.root = buildTree(7)
 	ints := make([]int, 0)
 
-	nt.VisitDescending(func(d interface{}) {
-		ints = append(ints, d.(int))
+	nt.VisitDescending(func(d Key) {
+		ints = append(ints, int(d.(testKey)))
 	})
 
 	expected := []int{7, 6, 5, 4, 3, 2, 1}
@@ -181,87 +233,87 @@ func TestBalanceFactor(t *testing.T) {
 
 func TestInsertRR(t *testing.T) {
 	nt := &Tree{}
-	n := nt.insert(nil, testKey(10), 10)
-	if n.data.(int) != 10 {
+	n := nt.insert(nil, testKey(10))
+	if n.key.(testKey) != 10 {
 		t.Errorf("Insert should have inserted 10")
 	}
-	n = nt.insert(n, testKey(15), 15)
-	n = nt.insert(n, testKey(20), 20)
-	if n.data.(int) != 15 {
-		t.Errorf("Expected 5, not %v", n.data.(int))
+	n = nt.insert(n, testKey(15))
+	n = nt.insert(n, testKey(20))
+	if n.key.(testKey) != 15 {
+		t.Errorf("Expected 5, not %v", n.key.(testKey))
 	}
-	if n.left.data.(int) != 10 {
-		t.Errorf("Expected 10, not %v", n.data.(int))
+	if n.left.key.(testKey) != 10 {
+		t.Errorf("Expected 10, not %v", n.key.(testKey))
 	}
-	if n.right.data.(int) != 20 {
-		t.Errorf("Expected 20, not %v", n.data.(int))
+	if n.right.key.(testKey) != 20 {
+		t.Errorf("Expected 20, not %v", n.key.(testKey))
 	}
 }
 
 func TestInsertLL(t *testing.T) {
 	nt := &Tree{}
-	n := nt.insert(nil, testKey(20), 20)
-	if n.data.(int) != 20 {
+	n := nt.insert(nil, testKey(20))
+	if n.key.(testKey) != 20 {
 		t.Errorf("Insert should have inserted 20")
 	}
-	n = nt.insert(n, testKey(15), 15)
-	n = nt.insert(n, testKey(10), 10)
-	if n.data.(int) != 15 {
-		t.Errorf("Expected 15, not %v", n.data.(int))
+	n = nt.insert(n, testKey(15))
+	n = nt.insert(n, testKey(10))
+	if n.key.(testKey) != 15 {
+		t.Errorf("Expected 15, not %v", n.key.(testKey))
 	}
-	if n.left.data.(int) != 10 {
-		t.Errorf("Expected 10, not %v", n.data.(int))
+	if n.left.key.(testKey) != 10 {
+		t.Errorf("Expected 10, not %v", n.key.(testKey))
 	}
-	if n.right.data.(int) != 20 {
-		t.Errorf("Expected 20, not %v", n.data.(int))
+	if n.right.key.(testKey) != 20 {
+		t.Errorf("Expected 20, not %v", n.key.(testKey))
 	}
 }
 
 func TestInsertRL(t *testing.T) {
 	nt := &Tree{}
-	n := nt.insert(nil, testKey(10), 10)
-	if n.data.(int) != 10 {
+	n := nt.insert(nil, testKey(10))
+	if n.key.(testKey) != 10 {
 		t.Errorf("Insert should have inserted 10")
 	}
-	n = nt.insert(n, testKey(20), 20)
-	n = nt.insert(n, testKey(15), 15)
-	if n.data.(int) != 15 {
-		t.Errorf("Expected 15, not %v", n.data.(int))
+	n = nt.insert(n, testKey(20))
+	n = nt.insert(n, testKey(15))
+	if n.key.(testKey) != 15 {
+		t.Errorf("Expected 15, not %v", n.key.(testKey))
 	}
-	if n.left.data.(int) != 10 {
-		t.Errorf("Expected 10, not %v", n.data.(int))
+	if n.left.key.(testKey) != 10 {
+		t.Errorf("Expected 10, not %v", n.key.(testKey))
 	}
-	if n.right.data.(int) != 20 {
-		t.Errorf("Expected 20, not %v", n.data.(int))
+	if n.right.key.(testKey) != 20 {
+		t.Errorf("Expected 20, not %v", n.key.(testKey))
 	}
 }
 
 func TestInsertLR(t *testing.T) {
 	nt := &Tree{}
-	n := nt.insert(nil, testKey(20), 20)
-	if n.data.(int) != 20 {
+	n := nt.insert(nil, testKey(20))
+	if n.key.(testKey) != 20 {
 		t.Errorf("Insert should have inserted 20")
 	}
-	n = nt.insert(n, testKey(10), 10)
-	n = nt.insert(n, testKey(15), 15)
-	if n.data.(int) != 15 {
-		t.Errorf("Expected 15, not %v", n.data.(int))
+	n = nt.insert(n, testKey(10))
+	n = nt.insert(n, testKey(15))
+	if n.key.(testKey) != 15 {
+		t.Errorf("Expected 15, not %v", n.key.(testKey))
 	}
-	if n.left.data.(int) != 10 {
-		t.Errorf("Expected 10, not %v", n.data.(int))
+	if n.left.key.(testKey) != 10 {
+		t.Errorf("Expected 10, not %v", n.key.(testKey))
 	}
-	if n.right.data.(int) != 20 {
-		t.Errorf("Expected 20, not %v", n.data.(int))
+	if n.right.key.(testKey) != 20 {
+		t.Errorf("Expected 20, not %v", n.key.(testKey))
 	}
 }
 
 func TestLookup(t *testing.T) {
 	nt := &Tree{}
-	n := nt.insert(nil, testKey(20), 20)
-	n = nt.insert(n, testKey(30), 30)
-	n = nt.insert(n, testKey(40), 40)
-	n = nt.insert(n, testKey(50), 50)
-	n = nt.insert(n, testKey(60), 60)
+	n := nt.insert(nil, testKey(20))
+	n = nt.insert(n, testKey(30))
+	n = nt.insert(n, testKey(40))
+	n = nt.insert(n, testKey(50))
+	n = nt.insert(n, testKey(60))
 
 	v := lookup(n, testKey(70))
 	if v != nil {
@@ -272,7 +324,7 @@ func TestLookup(t *testing.T) {
 	if v == nil {
 		t.Errorf("Lookup should be successful")
 	}
-	if v != nil && v.data.(int) != 50 {
+	if v != nil && v.key.(testKey) != 50 {
 		t.Errorf("Lookup should return 50")
 	}
 
@@ -280,7 +332,7 @@ func TestLookup(t *testing.T) {
 	if v == nil {
 		t.Errorf("Lookup should be successful")
 	}
-	if v != nil && v.data.(int) != 20 {
+	if v != nil && v.key.(testKey) != 20 {
 		t.Errorf("Lookup should return 20")
 	}
 
@@ -347,8 +399,8 @@ func TestVisitAscending(t *testing.T) {
 	n := buildTree(7)
 	ints := make([]int, 0)
 	expected := []int{1, 2, 3, 4, 5, 6, 7}
-	visitAscending(n, func(d interface{}) {
-		ints = append(ints, d.(int))
+	visitAscending(n, func(d Key) {
+		ints = append(ints, int(d.(testKey)))
 	})
 
 	if len(expected) != len(ints) {
@@ -366,8 +418,8 @@ func TestVisitDescending(t *testing.T) {
 	n := buildTree(7)
 	ints := make([]int, 0)
 	expected := []int{7, 6, 5, 4, 3, 2, 1}
-	visitDescending(n, func(d interface{}) {
-		ints = append(ints, d.(int))
+	visitDescending(n, func(d Key) {
+		ints = append(ints, int(d.(testKey)))
 	})
 
 	if len(expected) != len(ints) {
@@ -387,7 +439,7 @@ func buildTree(max int) *node {
 		return nil
 	}
 	for i := 1; i <= max; i++ {
-		nt.root = nt.insert(nt.root, testKey(i), i)
+		nt.root = nt.insert(nt.root, testKey(i))
 	}
 	return nt.root
 }
@@ -396,8 +448,8 @@ func verifyTree(n *node, vals []int) []error {
 	var errors []error
 	ints := make([]int, 0)
 
-	visitAscending(n, func(d interface{}) {
-		ints = append(ints, d.(int))
+	visitAscending(n, func(d Key) {
+		ints = append(ints, int(d.(testKey)))
 	})
 
 	intsLen := len(ints)
