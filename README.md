@@ -11,12 +11,10 @@
 - [Documentation](#documenation)
 - [Overview](#Overview)
 - [Installing](#Installing)
-- [Concepts](#concetps)
-  * [Commands](#commands)
-  * [Arguments](#arguments)
-  * [Options](#options)
-  * [Operands](#operands)
-  * [Parser](#parser)
+- [Concepts](#Concetps)
+  * [Interface](#interface)
+  * [Operations](#operations)
+  * [Traversing](#traversing)
 - [Contributing](#contributing)
 
 # Documentation
@@ -42,7 +40,7 @@ go mod init <project path>
 # Concepts
 An [AVL Tree](https://en.wikipedia.org/wiki/AVL_tree) is a data structure that can insert, search, and delete in O(log n). The package provides the ability to insert, search, and delete by using the Put, Get, and Del methods respectively. Because Go does not support generics at this time, AVL uses the Key interface and type assertion to insert, search, and delete.
 
-## Key Interface
+## Interface
 AVL uses the Key interface to be able to properly balance the tree. In order to insert, search, and delete records, the record must implement the Key interface. The following code describes the Key interface and User record that impelements the Key interface by the user ID.
 ```go
 type Key interface {
@@ -62,7 +60,7 @@ func (u *User) Equals(k Key) bool {
 }
 ```
 
-## Insert, Search, and Delete
+## Operations
 AVL has the ability to insert, search and delete. The following piece of code makes uses the User struct above to be able to insert, search, and delete by user ID.
 ```go
 cache := &avl.Tree{}
