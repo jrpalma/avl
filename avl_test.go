@@ -133,8 +133,9 @@ func TestTreeVisitAscending(t *testing.T) {
 	nt.root = buildTree(7)
 	ints := make([]int, 0)
 
-	nt.VisitAscending(func(d Key) {
+	nt.VisitAscending(func(d Key) bool {
 		ints = append(ints, int(d.(testKey)))
+		return true
 	})
 
 	expected := []int{1, 2, 3, 4, 5, 6, 7}
@@ -155,8 +156,9 @@ func TestTreeVisitDescending(t *testing.T) {
 	nt.root = buildTree(7)
 	ints := make([]int, 0)
 
-	nt.VisitDescending(func(d Key) {
+	nt.VisitDescending(func(d Key) bool {
 		ints = append(ints, int(d.(testKey)))
+		return true
 	})
 
 	expected := []int{7, 6, 5, 4, 3, 2, 1}
@@ -399,8 +401,9 @@ func TestVisitAscending(t *testing.T) {
 	n := buildTree(7)
 	ints := make([]int, 0)
 	expected := []int{1, 2, 3, 4, 5, 6, 7}
-	visitAscending(n, func(d Key) {
+	visitAscending(n, func(d Key) bool {
 		ints = append(ints, int(d.(testKey)))
+		return true
 	})
 
 	if len(expected) != len(ints) {
@@ -418,8 +421,9 @@ func TestVisitDescending(t *testing.T) {
 	n := buildTree(7)
 	ints := make([]int, 0)
 	expected := []int{7, 6, 5, 4, 3, 2, 1}
-	visitDescending(n, func(d Key) {
+	visitDescending(n, func(d Key) bool {
 		ints = append(ints, int(d.(testKey)))
+		return true
 	})
 
 	if len(expected) != len(ints) {
@@ -430,6 +434,34 @@ func TestVisitDescending(t *testing.T) {
 		if expected[i] != v {
 			t.Errorf("Expected %v, not %v", expected[i], v)
 		}
+	}
+}
+
+func TestDescendingExit(t *testing.T) {
+	n := buildTree(7)
+	ints := make([]int, 0)
+	visitDescending(n, func(d Key) bool {
+		ints = append(ints, int(d.(testKey)))
+		return false
+	})
+
+	if 1 != len(ints) {
+		t.Errorf("Expected nodes %#v, not %#v", 1, ints)
+		return
+	}
+}
+
+func TestAscendingExit(t *testing.T) {
+	n := buildTree(7)
+	ints := make([]int, 0)
+	visitAscending(n, func(d Key) bool {
+		ints = append(ints, int(d.(testKey)))
+		return false
+	})
+
+	if 1 != len(ints) {
+		t.Errorf("Expected nodes %#v, not %#v", 1, ints)
+		return
 	}
 }
 
@@ -448,8 +480,9 @@ func verifyTree(n *node, vals []int) []error {
 	var errors []error
 	ints := make([]int, 0)
 
-	visitAscending(n, func(d Key) {
+	visitAscending(n, func(d Key) bool {
 		ints = append(ints, int(d.(testKey)))
+		return true
 	})
 
 	intsLen := len(ints)

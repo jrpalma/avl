@@ -8,7 +8,7 @@ func NewUserStore() *UserStore {
 	return &UserStore{tree: &Tree{}}
 }
 
-type UserVisit func(*User)
+type UserVisit func(*User) bool
 
 type User struct {
 	ID  uint64
@@ -49,13 +49,15 @@ func (us *UserStore) Put(u *User) {
 	us.tree.Put(u)
 }
 func (us *UserStore) VisitAscending(v UserVisit) {
-	us.tree.VisitAscending(func(k Key) {
+	us.tree.VisitAscending(func(k Key) bool {
 		v(k.(*User))
+		return true
 	})
 }
 func (us *UserStore) VisitDescending(v UserVisit) {
-	us.tree.VisitDescending(func(k Key) {
+	us.tree.VisitDescending(func(k Key) bool {
 		v(k.(*User))
+		return true
 	})
 }
 

@@ -6,8 +6,9 @@ type Key interface {
 	Equals(Key) bool
 }
 
-//Visit Function type used to visit all the nodes in a tree
-type Visit func(Key)
+//Visit Function type used to visit all the nodes in a tree.
+//Return true to continue visiting or fale to stop.
+type Visit func(Key) bool
 
 //NewTree Creates and returns a new AVL tree
 func NewTree() *Tree {
@@ -165,22 +166,34 @@ func lookup(n *node, k Key) *node {
 	return lookup(n.right, k)
 }
 
-func visitAscending(n *node, visit Visit) {
+func visitAscending(n *node, visit Visit) bool {
 	if n == nil {
-		return
+		return true
 	}
-	visitAscending(n.left, visit)
-	visit(n.key)
-	visitAscending(n.right, visit)
+	ok := visitAscending(n.left, visit)
+	if !ok {
+		return ok
+	}
+	ok = visit(n.key)
+	if !ok {
+		return ok
+	}
+	return visitAscending(n.right, visit)
 }
 
-func visitDescending(n *node, visit Visit) {
+func visitDescending(n *node, visit Visit) bool {
 	if n == nil {
-		return
+		return true
 	}
-	visitDescending(n.right, visit)
-	visit(n.key)
-	visitDescending(n.left, visit)
+	ok := visitDescending(n.right, visit)
+	if !ok {
+		return ok
+	}
+	ok = visit(n.key)
+	if !ok {
+		return ok
+	}
+	return visitDescending(n.left, visit)
 }
 
 func rebalance(n *node) *node {
