@@ -74,13 +74,15 @@ if user, ok := user.(*User); ok {
 user.Del(&User{ID: 12})
 ```
 ## Traversing
-AVL has the ability to traverse the tree in ascending and descending order. This can be achieved by simply calling the VisitAscending and VisitDescending functions like in the following example.
+AVL has the ability to traverse the tree in ascending and descending order. The function must return false in order to stop traversing. This can be achieved by simply calling the VisitAscending and VisitDescending functions like in the following example.
 ```go
-cache.VisitAscending(func(k Key) {
+cache.VisitAscending(func(k Key) bool {
 	fmt.Printf("%+v\n", k.(*User))
+	return true
 })
-cache.VisitDescending(func(k Key) {
+cache.VisitDescending(func(k Key) bool {
 	fmt.Printf("%+v\n", k.(*User))
+	return true
 })
 
 ```
