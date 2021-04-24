@@ -139,11 +139,9 @@ func (t *Tree) remove(n *node, k Key) *node {
 			return nil
 		}
 		if n.left == nil && n.right != nil {
-			t.size--
 			n = n.right
 		}
 		if n.left != nil && n.right == nil {
-			t.size--
 			n = n.left
 		}
 		if n.left != nil && n.right != nil {
