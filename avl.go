@@ -134,20 +134,23 @@ func (t *Tree) remove(n *node, k Key) *node {
 	} else if !k.Equals(n.key) {
 		n.right = t.remove(n.right, k)
 	} else {
-		t.size--
 		if n.left == nil && n.right == nil {
+			t.size--
 			return nil
 		}
 		if n.left == nil && n.right != nil {
+			t.size--
 			n = n.right
 		}
 		if n.left != nil && n.right == nil {
+			t.size--
 			n = n.left
 		}
 		if n.left != nil && n.right != nil {
 			smallestRight := smallest(n.right)
 			n.key = smallestRight.key
 			n.right = t.remove(n.right, n.key)
+			t.size--
 		}
 	}
 
